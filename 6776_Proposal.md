@@ -1,5 +1,5 @@
 
-# A Simulation of Cache/P2P Node Behavior
+# A Simulation of Cache Behavior
 
 Meng Li & Ziyi Xin
 
@@ -12,7 +12,7 @@ Write a program to simulate the behavior of the cache. In which the cache should
 5. Dynamicaly sort the content stored locally by visit frequency and delete least frequently used content when cache is fully occupied (LFU Method). 
 
 ## Significance:
-This simulation helps user to understand the model of cache design by creating a simplified model demonstrating how this architecture works. Users are also able to investigate how cache manage its content dynamicaly by tracing the content inside the cache. 
+This simulation helps user to understand the model of cache design by creating a simplified model demonstrating how this architecture works. Users are also able to investigate how cache manage its content dynamicaly by tracing the content inside the cache.
 
 ## Methodology
 This model will be designed using socekt programming through python. We will implement a cache that can listen and forward the request between client and server while store data locally. 
