@@ -20,8 +20,32 @@ def setup_socekt(address, port):
     else:
         s.connect((address, port))
 
-def LFU(temp):
-    return None
+class LFU:
+    def __init__(local):
+        # maximum file that can be stored in the cache: 10
+        local.length = 10
+        # dictionary for cached files
+        local.cache = {} # {key:value}
+        # dictionary to track frequency
+        local.frequency = {} # {key:frequency}
+
+    def get_file(local, key, value):
+        if key in local.cache:
+            local.frequency[key] += 1
+            return local.cache[key]
+        else:
+            if len(local.cache) >= local.length:
+                local.delete()
+            else:
+                local.frequency[key] = 1
+                local.cache[key] = value
+        
+    def delete(local):
+        del_key = min(local.frequency, key=local.frequency.get)
+        del local.cache[del_key]
+        del local.frequency[del_key]
+
+
 
 def check_cache(x, cache, client_socket, server_socekt):
     if x in cache:
