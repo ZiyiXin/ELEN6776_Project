@@ -15,7 +15,7 @@ def setup_socekt(address, port):
     s = socket(AF_INET, SOCK_STREAM)
     # as a server
     if address == '':
-        s.bind('', port)
+        s.bind('', 80)
         s.listen(200)
     # as a client
     else:
