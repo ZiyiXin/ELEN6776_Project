@@ -2,102 +2,121 @@
 from socket import *
 import select
 import threading
-import sys
-import time
-# ========================================================
-# local storage
-cache = {}
-
+# import sys
+# import time
 
 # ========================================================
-# set up socket connection
-def setup_socekt(address, port):
-    s = socket(AF_INET, SOCK_STREAM)
-    # as a server
-    if address == '':
-        s.bind('', 80)
-        s.listen(200)
-    # as a client
-    else:
-        s.connect((address, port))
-
 # define everything used within Least Frequently Used algorighm
 class LFU:
     # Initiate the class
-    def __init__(local):
+    def __init__(self, max_length = 10):
         # maximum file that can be stored in the cache: 10
-        local.length = 10
-        # dictionary for cached files
-        local.cache = {} # {key:value}
-        # dictionary to track frequency
-        local.frequency = {} # {key:frequency}
+        self.length = max_length
+        
 
-    # get the file from cache, update frequency & delete files
-    def get_file(local, key, value):
-        if key in local.cache:
-            local.frequency[key] += 1
-            return local.cache[key]
-        else:
-            if len(local.cache) >= local.length:
-                local.delete()
-            else:
-                local.frequency[key] = 1
-                local.cache[key] = value
-
+    # get the file from cache
+    def get_file(self, key):
+        if key in self.cache:
+            self.frequency[key] += 1
+            return self.cache[key]
+        return None
+    
     # delete least frequently used files  
-    def delete(local):
-        del_key = min(local.frequency, key=local.frequency.get)
-        del local.cache[del_key]
-        del local.frequency[del_key]
+    def del_file(self):
+        del_key = min(self.frequency, key=self.frequency.get)
+        del self.cache[del_key]
+        del self.frequency[del_key]
+    # add file to cache
+    
+    def add_file(self, key, value):
+        if len(self.cache) >=  self.length:
+            self.del_file()
+        self.cache[key] = value
+        self.frequency[key] += 1
 
-# check if file stored in cache
-def check_cache(x, cache, client_socket, server_socekt):
-    if x in cache:
-        return True
-    else:
-        return False
+# executing the proxy
+def start_proxy(listen_port, server_ip, server_port):
+    # Socket that the proxy used to listen for incoming connection
+    # e.g. Client
+    global cache
 
-# main proxy behavior
+    cache = LFU(max_length=10)
+
+
+    proxy_socket = socket(AF_INET, SOCK_STREAM)
+    proxy_socket.bind('', listen_port)
+    proxy_socket.listen(100)
+    print(f'Proxy server listening on port {listen_port}...')
+
+    try:
+        while True:
+            client_socket, client_addr = proxy_socket.accept()
+            print(f'Accepted connection from {client_addr}')
+
+            try:
+                server_socket = socket(AF_INET, SOCK_STREAM)
+                server_socket.connect((server_ip, server_port))
+            except Exception as e:
+                client_socket.close()
+                continue
+
+            threading.Thread(
+                target = proxy_connection,
+                args=(client_socket, server_socket)
+            ).start
+    except KeyboardInterrupt:
+        print("Proxy shutting down.")
+    finally:
+        proxy_socket.close()
+
+# main proxy logic
 def proxy(client_socket, server_socket):
     global cache
     try:
-        while 1 == 1:
-            readable, _, _ = select.select([client_socket, server_socket], [], [])
+        while True:
+            readable_sockets, _, _ = select.select([client_socket, select], [], [])
+            
+            for i in readable_sockets:
+                # data from client
+                if i == client_socket:
+                    key = client_socket.recv(2048).decode()
+                    if not key:
+                        print("Disconnected.")
+                        return
 
-            # message from client
-            if client_socket in readable:
-                key = client_socket.recv(2048)
-                if not key:
-                    print("Client connection lost")
-                    return
+                    cache_file = cache.get_file(key)
+                    if cache_file:
+                        print(f'Cache hit: {key}')
+                        client_socket.send(cache_file)
+                    else:
+                        print(f'Cache miss: {key}. Sending to server...')
+                        server_socket.send(key.encode())
                 
-                if check_cache(key, cache, client_socket, server_socket):
-                    file = cache[key]
-                    client_socket.sendto(file)
-                else:
-                    server_socket.sendto(key)
-
-            # message from server
-            if server_socket in readable:
-                val = server_socket.recv(2048)
-                cache[key] = val
-                client_socket.sendto(val)
-
+                # receiving data from server
+                elif i == server_socket:
+                    value = server_socket.recv(2048)
+                    if not value:
+                        print("Server disconnected.")
+                        return
+                    
+                    print(f'Caching response from server: {key}')
+                    cache.add_file(key, value)
+                    client_socket.send(value)
+    except Exception:
+        print(f'Error')
     finally:
         client_socket.close()
         server_socket.close()
+        print("Closed client-server session.")
 
-# executing the proxy
-def run_proxy(listen_port, server_ip, server_port):
-    client = setup_socekt('', listen_port )
+if __name__ == "__main__":
+    LISTEN_PORT = 8080
 
-    while 1 == 1:
-        try:
-            client_socket, _ = client.accpet()
-            server_socket = setup_socekt(server_ip, server_port)
+    # server is hosted locally.
+    SERVER_IP = "127.0.0.1"
+    
+    # by default, set it to 80
+    SERVER_PORT = 80
 
-            t = threading.Thread(target=proxy, args=(client_socket, server_socket, server_ip))
+    start_proxy(LISTEN_PORT, SERVER_IP, SERVER_PORT)
 
-            t.start()
-        except KeyboardInterrupt:
-            print("Proxy shutting down.")
