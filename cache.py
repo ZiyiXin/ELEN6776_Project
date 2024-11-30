@@ -12,6 +12,8 @@ class LFU:
     def __init__(self, max_length = 10):
         # maximum file that can be stored in the cache: 10
         self.length = max_length
+        self.cache = {}
+        self.frequency = {}
         
 
     # get the file from cache
@@ -32,7 +34,7 @@ class LFU:
         if len(self.cache) >=  self.length:
             self.del_file()
         self.cache[key] = value
-        self.frequency[key] += 1
+        self.frequency[key] = 1
 
 # executing the proxy
 def start_proxy(listen_port, server_ip, server_port):
@@ -61,9 +63,9 @@ def start_proxy(listen_port, server_ip, server_port):
                 continue
 
             threading.Thread(
-                target = proxy_connection,
+                target = proxy,
                 args=(client_socket, server_socket)
-            ).start
+            ).start()
     except KeyboardInterrupt:
         print("Proxy shutting down.")
     finally:
@@ -74,7 +76,7 @@ def proxy(client_socket, server_socket):
     global cache
     try:
         while True:
-            readable_sockets, _, _ = select.select([client_socket, select], [], [])
+            readable_sockets, _, _ = select.select([client_socket, server_socket], [], [])
             
             for i in readable_sockets:
                 # data from client
