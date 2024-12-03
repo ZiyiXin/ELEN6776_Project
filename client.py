@@ -1,12 +1,10 @@
 from socket import *
 import sys
 
-SERVERNAME = 'localhost'
 
-def request_file(filename, serverPort):
-    global SERVERNAME
+def request_file(filename, server_ip, serverPort):
     client_socket = socket(AF_INET, SOCK_STREAM)
-    client_socket.connect((SERVERNAME, serverPort))
+    client_socket.connect((server_ip, serverPort))
 
     client_socket.sendall(filename.encode())
 
@@ -22,11 +20,11 @@ def request_file(filename, serverPort):
 def print_welcome_message():
     welcome_message = """
 ###############################################################
-#                                                         #
-#     Welcome to Cache Simulator by Ziyi Xin and Meng Li! #
-#   Here you can type in the lyrics of OSTs of many TV    #
-#   shows you want. Come and try it out!                  #
-#                                                         #
+#                                                            #
+#     Welcome to Cache Simulator by Ziyi Xin and Meng Li!    #
+#   Here you can type in the lyrics of OSTs of many TV       #
+#   shows you want. Come and try it out!                     #
+#                                                            #
 ###############################################################
 """
     print(welcome_message)
@@ -39,7 +37,7 @@ if __name__ == "__main__":
     while True:
         try:
             filename = input("What do you what to check: ")
-            request_file(filename, listen_port)
+            request_file(filename, server_ip, listen_port)
             deter = input("Are you still looking for something else?(y/n): ")
             if deter.lower() == "n":
                 break
