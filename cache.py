@@ -64,7 +64,7 @@ def start_proxy(listen_port, server_ip, server_port):
 
 
     proxy_socket = socket(AF_INET, SOCK_STREAM)
-    proxy_socket.bind('', listen_port)
+    proxy_socket.bind(('', listen_port))
     proxy_socket.listen(100)
     print(f'Proxy server listening on port {listen_port}...')
 
