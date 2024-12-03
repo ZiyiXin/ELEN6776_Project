@@ -8,7 +8,7 @@ def request_file(filename, serverPort):
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect((SERVERNAME, serverPort))
 
-    client_socket.sendto(filename)
+    client_socket.sendall(filename.encode())
 
     file_content = ''
     while True:
@@ -35,11 +35,11 @@ def print_welcome_message():
 if __name__ == "__main__":
     print_welcome_message()
     server_ip = sys.argv[1]
-    listen_port = sys.argv[2]
+    listen_port = int(sys.argv[2])
     while True:
         try:
             filename = input("What do you what to check: ")
-            request_file(filename, server_ip, listen_port)
+            request_file(filename, listen_port)
             deter = input("Are you still looking for something else?(y/n): ")
             if deter.lower() == "n":
                 break

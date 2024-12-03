@@ -2,37 +2,55 @@
 from socket import *
 import select
 import threading
-# import sys
+import os
 # import time
 
 # ========================================================
 # define everything used within Least Frequently Used algorighm
 class LFU:
     # Initiate the class
-    def __init__(self, max_length = 10):
+    def __init__(self, max_length=10, cache_dir='cache'):
         # maximum file that can be stored in the cache: 10
         self.length = max_length
-        self.cache = {}
-        self.frequency = {}
+        self.cache = {} # store file path
+        self.frequency = {} # track frequency
+        self.cache_dir = cache_dir
+
+        # ensure local storage exists
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
         
 
-    # get the file from cache
+    # get the file from cache based on client requests
     def get_file(self, key):
         if key in self.cache:
             self.frequency[key] += 1
-            return self.cache[key]
+            file_path = self.cache[key]
+            if os.path.exists(file_path):
+                with open(file_path, 'rb') as f:
+                    return f.read()
+
         return None
     
     # delete least frequently used files  
     def del_file(self):
-        del_key = min(self.frequency, key=self.frequency.get)
+        del_key = min(self.frequency, key=self.frequency.get) # find least frequently used file
+        file_path = self.cache(del_key)
+        
+        if os.path.exists(file_path):
+            os.remove(file_path)
         del self.cache[del_key]
         del self.frequency[del_key]
-    # add file to cache
     
+    # add file to cache 
     def add_file(self, key, value):
         if len(self.cache) >=  self.length:
             self.del_file()
+
+        file_path = os.path.join(self.cache_dir,key) 
+        with open(file_path, 'wb') as f:
+            f.write(value)
+        
         self.cache[key] = value
         self.frequency[key] = 1
 
@@ -42,11 +60,11 @@ def start_proxy(listen_port, server_ip, server_port):
     # e.g. Client
     global cache
 
-    cache = LFU(max_length=10)
+    cache = LFU(max_length=10, cache_dir="cache")
 
 
     proxy_socket = socket(AF_INET, SOCK_STREAM)
-    proxy_socket.bind('', listen_port)
+    proxy_socket.bind(('', listen_port))
     proxy_socket.listen(100)
     print(f'Proxy server listening on port {listen_port}...')
 
@@ -83,29 +101,30 @@ def proxy(client_socket, server_socket):
                 if i == client_socket:
                     key = client_socket.recv(2048).decode()
                     if not key:
-                        print("Disconnected.")
+                        print("Client disconnected.")
                         return
 
                     cache_file = cache.get_file(key)
                     if cache_file:
                         print(f'Cache hit: {key}')
-                        client_socket.send(cache_file)
+                        response = f"HTTP/1.1 200 OK\r\n\r\n{cache_file}"
+                        client_socket.sendall(response.encode())
                     else:
                         print(f'Cache miss: {key}. Sending to server...')
-                        server_socket.send(key.encode())
+                        server_socket.sendall(key.encode())
                 
                 # receiving data from server
                 elif i == server_socket:
-                    value = server_socket.recv(2048)
+                    value = server_socket.recv(2048).decode()
                     if not value:
                         print("Server disconnected.")
                         return
                     
                     print(f'Caching response from server: {key}')
                     cache.add_file(key, value)
-                    client_socket.send(value)
-    except Exception:
-        print(f'Error')
+                    client_socket.sendall(value.encode())
+    except Exception as e:
+        print(f'Error: {e}')
     finally:
         client_socket.close()
         server_socket.close()
