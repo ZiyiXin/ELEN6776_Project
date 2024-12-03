@@ -1,13 +1,19 @@
 # Server for dict simulation
 
 from socket import *
+import os
 
 # Simulated File Storage
 # TODO: complete file storage
 FILE_STORAGE = {
-    "file1.txt": "This is the content of file1.txt",
-    "file2.txt": "This is the content of file2.txt",
-    "image1.png": "This is the binary content of image1.png.",
+    "friends":"firends.txt", 
+    "frozen":"frozen.txt", 
+    "how i met your mother":"himym.txt", 
+    "my little pony":"pony.txt", 
+    "shameless":"shameless.txt", 
+    "spiderman":"spiderman.txt", 
+    "the big bang theory":"tbbt.txt", 
+    "zootopia":"zootopia.txt"
 }
 
 
@@ -36,7 +42,7 @@ def server(client_socket):
                 print("Client disconnected.")
                 break
 
-            requested_file = data.decode()
+            requested_file = data.decode().lower()
 
             if requested_file in FILE_STORAGE:
                 send_file(client_socket, requested_file)
@@ -50,11 +56,20 @@ def server(client_socket):
 
 def send_file(client_socket, file_key):
     try:
-        content = FILE_STORAGE[file_key]
-        client_socket.send(content.encode())
-        print(f'Sent file: {file_key}')
+        filename = FILE_STORAGE[file_key]
+        file_path = os.path.join('Database', f'{filename}.txt')
+        with open(file_path, 'r') as file:
+                content = file.read()
+        
+        chunk_size = 2048
+        # Send the file in chunks
+        for i in range(0, len(content), chunk_size):
+            chunk = content[i:i+chunk_size]
+            client_socket.send(chunk.encode())
+
     except Exception:
         print(f'Error')
+
 
 if __name__ == "__main__":
     HOST = '127.0.0.1'
