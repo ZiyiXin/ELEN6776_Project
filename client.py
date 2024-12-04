@@ -35,7 +35,7 @@ if __name__ == "__main__":
     while True:
         try:
             filename = input("What do you what to check: ")
-            request_file(filename, server_ip='127.0.0.1', listen_port=int(8080))
+            request_file(filename, server_ip='', listen_port=int(8080))
             deter = input("Are you still looking for something else?(y/n): ")
             if deter.lower() == "n":
                 break

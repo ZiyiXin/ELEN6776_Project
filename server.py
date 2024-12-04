@@ -8,11 +8,11 @@ import os
 FILE_STORAGE = {
     "friends":"firends.txt", 
     "frozen":"frozen.txt", 
-    "how i met your mother":"himym.txt", 
-    "my little pony":"pony.txt", 
+    "himym":"himym.txt", 
+    "pony":"pony.txt", 
     "shameless":"shameless.txt", 
     "spiderman":"spiderman.txt", 
-    "the big bang theory":"tbbt.txt", 
+    "tbbt":"tbbt.txt", 
     "zootopia":"zootopia.txt"
 }
 
