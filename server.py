@@ -60,15 +60,7 @@ def send_file(client_socket, file_key):
         file_path = os.path.join('Database', f'{filename}.txt')
         with open(file_path, 'r') as file:
                 content = file.read()
-        
-        chunk_size = 2048
-        # Send the file in chunks
-        for i in range(0, len(content), chunk_size):
-            try:
-                chunk = content[i:i+chunk_size]
-            except:
-                chunk = content[i:]
-            client_socket.send(chunk.encode())
+        client_socket.sendall(content.encode())
 
     except Exception:
         print(f'Error')

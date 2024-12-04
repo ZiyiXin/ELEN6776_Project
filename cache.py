@@ -43,15 +43,16 @@ class LFU:
         del self.frequency[del_key]
     
     # add file to cache 
-    def add_file(self, key, value):
+    def add_file(self, key, content):
         if len(self.cache) >=  self.length:
             self.del_file()
 
-        file_path = os.path.join(self.cache_dir,key) 
+        file_name = f"{key}.txt"
+        file_path = os.path.join(self.cache_dir,file_name) 
         with open(file_path, 'wb') as f:
-            f.write(value)
+            f.write(content)
         
-        self.cache[key] = value
+        self.cache[key] = file_path
         self.frequency[key] = 1
 
 # executing the proxy
@@ -107,22 +108,24 @@ def proxy(client_socket, server_socket):
                     cache_file = cache.get_file(key)
                     if cache_file:
                         print(f'Cache hit: {key}')
-                        response = f"HTTP/1.1 200 OK\r\n\r\n{cache_file}"
-                        client_socket.sendall(response.encode())
+                        client_socket.sendall(cache_file.encode())
                     else:
                         print(f'Cache miss: {key}. Sending to server...')
                         server_socket.sendall(key.encode())
                 
                 # receiving data from server
                 elif i == server_socket:
-                    value = server_socket.recv(2048).decode()
-                    if not value:
-                        print("Server disconnected.")
-                        return
-                    
+                    content = ''
+                    while True:
+                        value = server_socket.recv(2048).decode()
+                        if not value:
+                            print("Server disconnected.")
+                            break
+                        content += value
+                        client_socket.sendall(value.encode())
+                        
                     print(f'Caching response from server: {key}')
-                    cache.add_file(key, value)
-                    client_socket.sendall(value.encode())
+                    cache.add_file(key,content)
     except Exception as e:
         print(f'Error: {e}')
     finally:
