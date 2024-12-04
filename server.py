@@ -43,7 +43,6 @@ def server(client_socket):
                 break
 
             requested_file = data.decode().lower()
-
             if requested_file in FILE_STORAGE:
                 send_file(client_socket, requested_file)
             else:
@@ -57,14 +56,13 @@ def server(client_socket):
 def send_file(client_socket, file_key):
     try:
         filename = FILE_STORAGE[file_key]
-        file_path = os.path.join('Database', f'{filename}.txt')
+        file_path = os.path.join('Database', f'{filename}')
         with open(file_path, 'r') as file:
                 content = file.read()
         client_socket.sendall(content.encode())
 
     except Exception:
-        print(f'Error')
-
+        print(f'Error when sending file')
 
 if __name__ == "__main__":
     HOST = '127.0.0.1'

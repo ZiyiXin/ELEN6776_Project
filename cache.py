@@ -103,7 +103,7 @@ def proxy(client_socket, server_socket):
                     key = client_socket.recv(2048).decode()
                     if not key:
                         print("Client disconnected.")
-                        return
+                        return None
 
                     cache_file = cache.get_file(key)
                     if cache_file:
@@ -116,16 +116,11 @@ def proxy(client_socket, server_socket):
                 # receiving data from server
                 elif i == server_socket:
                     content = ''
-                    while True:
-                        value = server_socket.recv(2048).decode()
-                        if not value:
-                            print("Server disconnected.")
-                            break
-                        content += value
-                        client_socket.sendall(value.encode())
+                    value = server_socket.recv(2048).decode()
+                    client_socket.sendall(value.encode())
                         
                     print(f'Caching response from server: {key}')
-                    cache.add_file(key,content)
+                    cache.add_file(key,value)
     except Exception as e:
         print(f'Error: {e}')
     finally:

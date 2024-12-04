@@ -8,13 +8,8 @@ def request_file(filename, server_ip, server_port):
         client_socket.connect((server_ip, server_port))
         client_socket.sendall(filename.encode())
 
-        file_content = ''
-        while True:
-            response = client_socket.recv(2048)
-            if not response:
-                break
-            file_content += response.decode()
-        print(file_content)
+        response = client_socket.recv(2048)
+        print(response.decode())
     finally:
         client_socket.close()
 
