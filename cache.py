@@ -134,13 +134,13 @@ def proxy(client_socket, server_socket):
         print("Closed client-server session.")
 
 if __name__ == "__main__":
-    LISTEN_PORT = 8080
+    LISTEN_PORT = 8081
 
     # server is hosted locally.
     SERVER_IP = "127.0.0.1"
     
-    # by default, set it to 80
-    SERVER_PORT = 80
+    # by default, set it to 8080
+    SERVER_PORT = 8080
 
     start_proxy(LISTEN_PORT, SERVER_IP, SERVER_PORT)
 

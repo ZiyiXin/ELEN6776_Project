@@ -1,5 +1,11 @@
 # Cache
 
+## 12/03
+
+*Solved*
+
+1. Finalized Client: Client can connect to 
+
 ## 11/28
 
 *Solved*

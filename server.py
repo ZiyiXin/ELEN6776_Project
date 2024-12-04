@@ -68,7 +68,7 @@ def send_file(client_socket, file_key):
 
 if __name__ == "__main__":
     HOST = '127.0.0.1'
-    PORT = 80
+    PORT = 8080
 
     start_server(HOST, PORT)
 
