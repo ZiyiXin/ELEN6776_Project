@@ -64,7 +64,10 @@ def send_file(client_socket, file_key):
         chunk_size = 2048
         # Send the file in chunks
         for i in range(0, len(content), chunk_size):
-            chunk = content[i:i+chunk_size]
+            try:
+                chunk = content[i:i+chunk_size]
+            except:
+                chunk = content[i:]
             client_socket.send(chunk.encode())
 
     except Exception:
