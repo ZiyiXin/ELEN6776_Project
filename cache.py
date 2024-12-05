@@ -50,7 +50,8 @@ class LFU:
         file_name = f"{key}.txt"
         file_path = os.path.join(self.cache_dir,file_name) 
         with open(file_path, 'wb') as f:
-            f.write(content)
+            print("Writing to local cache")
+            f.write(content.encode())
         
         self.cache[key] = file_path
         self.frequency[key] = 1
