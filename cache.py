@@ -3,13 +3,14 @@ from socket import *
 import select
 import threading
 import os
+import shutil
 # import time
 
 # ========================================================
 # define everything used within Least Frequently Used algorighm
 class LFU:
     # Initiate the class
-    def __init__(self, max_length=10, cache_dir='cache'):
+    def __init__(self, max_length, cache_dir):
         # maximum file that can be stored in the cache: 10
         self.length = max_length
         self.cache = {} # store file path
@@ -19,7 +20,19 @@ class LFU:
         # ensure local storage exists
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
-        
+        else:
+            # 清空 cache 目录中的所有文件
+            self.clear_cache()
+
+    def clear_cache(self):
+        """清空 cache 目录中的所有文件"""
+        for filename in os.listdir(self.cache_dir):
+            file_path = os.path.join(self.cache_dir, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)  
+        print(f"Cache directory '{self.cache_dir}' has been cleared.")
 
     # get the file from cache based on client requests
     def get_file(self, key):
@@ -35,7 +48,7 @@ class LFU:
     # delete least frequently used files  
     def del_file(self):
         del_key = min(self.frequency, key=self.frequency.get) # find least frequently used file
-        file_path = self.cache(del_key)
+        file_path = self.cache[del_key]
         
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -50,7 +63,6 @@ class LFU:
         file_name = f"{key}.txt"
         file_path = os.path.join(self.cache_dir,file_name) 
         with open(file_path, 'wb') as f:
-            print("Writing to local cache")
             f.write(content.encode())
         
         self.cache[key] = file_path
@@ -62,7 +74,7 @@ def start_proxy(listen_port, server_ip, server_port):
     # e.g. Client
     global cache
 
-    cache = LFU(max_length=10, cache_dir="cache")
+    cache = LFU(max_length=3, cache_dir="cache")
 
 
     proxy_socket = socket(AF_INET, SOCK_STREAM)
@@ -109,7 +121,7 @@ def proxy(client_socket, server_socket):
                     cache_file = cache.get_file(key)
                     if cache_file:
                         print(f'Cache hit: {key}')
-                        client_socket.sendall(cache_file.encode())
+                        client_socket.sendall(cache_file)
                     else:
                         print(f'Cache miss: {key}. Sending to server...')
                         server_socket.sendall(key.encode())

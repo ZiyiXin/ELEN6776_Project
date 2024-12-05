@@ -6,14 +6,17 @@ import os
 # Simulated File Storage
 # TODO: complete file storage
 FILE_STORAGE = {
-    "friends":"firends.txt", 
+    "deadpool":"deadpool.txt", 
     "frozen":"frozen.txt", 
     "himym":"himym.txt", 
     "pony":"pony.txt", 
     "shameless":"shameless.txt", 
     "spiderman":"spiderman.txt", 
     "tbbt":"tbbt.txt", 
-    "zootopia":"zootopia.txt"
+    "zootopia":"zootopia.txt",
+    "avangers":"avangers.txt",
+    "insideout":"insideout.txt",
+    "venom":"venom.txt"
 }
 
 
